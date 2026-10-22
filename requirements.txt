@@ -1,0 +1,2 @@
+# Solo necesario para PostgreSQL. El modo SQLite usa Python 3.11+ sin paquetes.
+psycopg[binary]>=3.2,<4

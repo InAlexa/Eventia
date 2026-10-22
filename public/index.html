@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Descubre encuentros, talleres y experiencias en tu comunidad. Conecta con lo que te mueve en Eventia.">
+  <title>Eventia · Encuentra tu próximo encuentro</title>
+  <link rel="stylesheet" href="/styles.css"><script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="#explorar" aria-label="Eventia, inicio"><span class="brand-mark">e<span>✳</span></span>eventia<span class="brand-dot">.</span></a>
+    <nav aria-label="Principal"><a href="#explorar" id="nav-explore">Explorar eventos</a><a href="#inscripciones" id="nav-mine">Mis inscripciones</a><a href="#organizar" id="nav-manage" hidden>Organizar</a><a href="#usuarios" id="nav-admin" hidden>Usuarios</a></nav>
+    <div id="account"><button class="button small outline" id="login-open">Iniciar sesión <span>↗</span></button></div>
+  </header>
+  <main id="main" tabindex="-1">
+    <section id="explore-view">
+      <section class="hero">
+        <div class="hero-copy"><p class="eyebrow"><span class="live-dot"></span> BUENAS EXPERIENCIAS, CERCA DE TI</p><h1>Hay encuentros<br>que lo cambian <em>todo.</em></h1><p class="hero-description">Descubre ideas, comparte lo que te apasiona y encuentra<br class="desktop"> a tu próxima comunidad. Tu siguiente historia empieza aquí.</p><a class="button dark" href="#catalogo">Encuentra tu evento <span>↗</span></a><div class="hero-foot"><span class="avatar-stack"><i>J</i><i>M</i><i>A</i><i>+</i></span><p>Personas, ideas y nuevas conexiones.<br><strong>Lo mejor pasa cuando nos encontramos.</strong></p></div></div>
+        <div class="hero-art" aria-label="Ilustración de dos formas que conectan"><span class="art-label">SAL DE LA RUTINA.<br>ENTRA EN ALGO NUEVO.</span><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="art-star">✳</div><div class="art-ticket"><span>PRÓXIMA PARADA</span><strong>Un buen<br>encuentro.</strong><span>EVENTIA — HECHO PARA CONECTAR ↗</span></div><span class="art-coordinate">14.83° N · 91.52° O</span></div>
+      </section>
+      <div class="ticker" aria-hidden="true"><span>IDEAS QUE INSPIRAN</span><b>✳</b><span>PERSONAS QUE CONECTAN</span><b>✳</b><span>EXPERIENCIAS QUE SE QUEDAN</span><b>✳</b><span>HECHO EN COMUNIDAD</span><b>✳</b></div>
+      <section class="catalog" id="catalogo"><div class="section-heading"><div><p class="eyebrow">DESCUBRE LO QUE VIENE</p><h2>Tu próximo «ahí nos vemos».</h2></div><span class="subtle">Eventos gratuitos. Conexiones sin límites.</span></div>
+        <div class="filters"><label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Busca un evento, una idea, una experiencia…" aria-label="Buscar eventos"></label><label class="sort-label">Ordenar por <select id="sort"><option value="date">Más próximos</option><option value="title">Nombre A–Z</option><option value="spaces">Más cupos</option></select></label></div>
+        <div class="category-row" id="categories" aria-label="Filtrar por categoría"></div>
+        <div class="result-header"><span id="result-count" role="status">Cargando eventos…</span><span class="location">↗ Quetzaltenango y comunidad</span></div><div class="event-grid" id="event-grid"></div>
+      </section>
+      <section class="organize-banner"><div><p class="eyebrow">DALE VIDA A TU IDEA</p><h2>Los grandes encuentros<br>empiezan con alguien como tú.</h2><p>Reúne a tu comunidad. Crea algo que valga la pena compartir.</p></div><button class="button dark" id="organize-cta">Quiero organizar <span>↗</span></button><span class="banner-star" aria-hidden="true">✳</span></section>
+    </section>
+    <section id="mine-view" class="page-view" hidden><p class="eyebrow">TU AGENDA, TUS CONEXIONES</p><h1>Mis inscripciones<span class="accent">.</span></h1><p class="page-intro">Aquí empieza lo que viene. Estos son tus encuentros confirmados.</p><div id="my-registrations" class="registration-list"></div></section>
+    <section id="manage-view" class="page-view" hidden><div class="section-heading"><div><p class="eyebrow">EL PUNTO DE ENCUENTRO LO PONES TÚ</p><h1>Mis eventos<span class="accent">.</span></h1></div><button class="button dark" id="create-event">Crear evento +</button></div><div id="managed-events" class="registration-list"></div></section>
+    <section id="admin-view" class="page-view" hidden><p class="eyebrow">ADMINISTRACIÓN</p><h1>Personas y permisos<span class="accent">.</span></h1><p class="page-intro">Los cambios de rol cierran las sesiones del usuario afectado.</p><div id="admin-users" class="registration-list"></div></section>
+  </main>
+  <footer><a class="brand" href="#explorar">eventia.</a><p>Menos scroll. Más encuentros.</p><span>Hecho para conectar · 2026</span></footer>
+  <dialog id="modal"><button class="close" id="modal-close" aria-label="Cerrar ventana">×</button><div id="modal-content"></div></dialog>
+  <div id="toast" role="status" aria-live="polite" hidden></div>
+</body></html>

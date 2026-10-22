@@ -1,0 +1,33 @@
+test_01_public_catalog_and_parameterized_search (test_security.SecurityTests.test_01_public_catalog_and_parameterized_search) ... ok
+test_02_register_rejects_role (test_security.SecurityTests.test_02_register_rejects_role) ... ok
+test_03_valid_registration_is_unprivileged_and_hashed (test_security.SecurityTests.test_03_valid_registration_is_unprivileged_and_hashed) ... ok
+test_04_invalid_password (test_security.SecurityTests.test_04_invalid_password) ... ok
+test_05_login_generic_error (test_security.SecurityTests.test_05_login_generic_error) ... ok
+test_06_login_rate_limit (test_security.SecurityTests.test_06_login_rate_limit) ... ok
+test_07_cookie_and_no_secret_leak (test_security.SecurityTests.test_07_cookie_and_no_secret_leak) ... ok
+test_08_auth_required (test_security.SecurityTests.test_08_auth_required) ... ok
+test_09_user_cannot_create_event (test_security.SecurityTests.test_09_user_cannot_create_event) ... ok
+test_10_negative_and_noninteger_capacity (test_security.SecurityTests.test_10_negative_and_noninteger_capacity) ... ok
+test_11_prices_rejected (test_security.SecurityTests.test_11_prices_rejected) ... ok
+test_12_organizer_creates_own_event (test_security.SecurityTests.test_12_organizer_creates_own_event) ... ok
+test_13_other_organizer_cannot_edit (test_security.SecurityTests.test_13_other_organizer_cannot_edit) ... ok
+test_14_owner_can_edit (test_security.SecurityTests.test_14_owner_can_edit) ... ok
+test_15_successful_enrollment_and_outbox (test_security.SecurityTests.test_15_successful_enrollment_and_outbox) ... ok
+test_16_duplicate_does_not_consume_capacity (test_security.SecurityTests.test_16_duplicate_does_not_consume_capacity) ... ok
+test_17_bulk_rejected (test_security.SecurityTests.test_17_bulk_rejected) ... ok
+test_18_registration_object_authorization (test_security.SecurityTests.test_18_registration_object_authorization) ... ok
+test_19_attendee_list_restricted (test_security.SecurityTests.test_19_attendee_list_restricted) ... ok
+test_20_profile_only_name_email_id (test_security.SecurityTests.test_20_profile_only_name_email_id) ... ok
+test_21_csrf_and_origin (test_security.SecurityTests.test_21_csrf_and_origin) ... ok
+test_22_concurrency_last_seat (test_security.SecurityTests.test_22_concurrency_last_seat) ... ok
+test_23_cannot_reduce_below_occupied (test_security.SecurityTests.test_23_cannot_reduce_below_occupied) ... ok
+test_24_unknown_properties_and_dates (test_security.SecurityTests.test_24_unknown_properties_and_dates) ... ok
+test_25_logout_invalidates_session (test_security.SecurityTests.test_25_logout_invalidates_session) ... ok
+test_26_security_headers_and_static (test_security.SecurityTests.test_26_security_headers_and_static) ... ok
+test_27_admin_only_role_change (test_security.SecurityTests.test_27_admin_only_role_change) ... ok
+test_28_hsts_and_secure_cookie_in_https_mode (test_security.SecurityTests.test_28_hsts_and_secure_cookie_in_https_mode) ... ok
+
+----------------------------------------------------------------------
+Ran 28 tests in 16.055s
+
+OK

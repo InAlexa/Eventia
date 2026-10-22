@@ -1,0 +1,1222 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Eventia API",
+    "version": "1.0.0",
+    "description": "Contrato de operaciones auditadas. Sesiones opacas, JSON <=16384 bytes, CSRF y autorización real en backend. Datos de ejemplo ficticios. Rutas adicionales descritas en README/código."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8000",
+      "description": "Desarrollo local"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "eventia_session",
+        "description": "Cookie HttpOnly emitida por login. Secure en HTTPS. Sesión de ocho horas."
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false
+      },
+      "Perfil": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "nombre": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "correo": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 254,
+            "format": "email"
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "correo"
+        ],
+        "additionalProperties": false
+      },
+      "UsuarioSesion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "nombre": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "correo": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 254,
+            "format": "email"
+          },
+          "rol": {
+            "type": "string",
+            "enum": [
+              "usuario",
+              "organizador",
+              "administrador"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "correo",
+          "rol"
+        ],
+        "additionalProperties": false
+      },
+      "Registro": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "correo": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 254,
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 128,
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "nombre",
+          "correo",
+          "password"
+        ],
+        "additionalProperties": false
+      },
+      "Login": {
+        "type": "object",
+        "properties": {
+          "correo": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 254,
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 128,
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "correo",
+          "password"
+        ],
+        "additionalProperties": false
+      },
+      "EventoEntrada": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "descripcion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 3000
+          },
+          "fecha": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "format": "date-time",
+            "description": "Futura, con zona horaria. Se almacena en UTC."
+          },
+          "ubicacion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "categoria": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "cupo": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000
+          },
+          "precio": {
+            "type": "integer",
+            "const": 0,
+            "description": "MVP solo gratuito."
+          }
+        },
+        "required": [
+          "titulo",
+          "descripcion",
+          "fecha",
+          "ubicacion",
+          "categoria",
+          "cupo",
+          "precio"
+        ],
+        "additionalProperties": false
+      },
+      "Inscripcion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "evento_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "usuario_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "fecha": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "evento_id",
+          "usuario_id",
+          "fecha"
+        ],
+        "additionalProperties": false
+      },
+      "InscripcionEntrada": {
+        "type": "object",
+        "properties": {
+          "cantidad": {
+            "type": "integer",
+            "const": 1
+          }
+        },
+        "required": [
+          "cantidad"
+        ],
+        "additionalProperties": false
+      },
+      "Evento": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "descripcion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 3000
+          },
+          "fecha": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "format": "date-time",
+            "description": "Futura, con zona horaria. Se almacena en UTC."
+          },
+          "ubicacion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "categoria": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "cupo": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000
+          },
+          "precio": {
+            "type": "integer",
+            "const": 0,
+            "description": "MVP solo gratuito."
+          },
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "disponibles": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "organizador_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "activo",
+              "cancelado"
+            ]
+          }
+        },
+        "required": [
+          "titulo",
+          "descripcion",
+          "fecha",
+          "ubicacion",
+          "categoria",
+          "cupo",
+          "precio",
+          "id",
+          "disponibles",
+          "organizador_id",
+          "estado"
+        ],
+        "additionalProperties": false
+      },
+      "InscripcionCreada": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "evento_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "usuario_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "fecha": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "format": "date-time"
+          },
+          "disponibles": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "notificacion": {
+            "type": "string",
+            "const": "pendiente"
+          }
+        },
+        "required": [
+          "id",
+          "evento_id",
+          "usuario_id",
+          "fecha",
+          "disponibles",
+          "notificacion"
+        ],
+        "additionalProperties": false
+      },
+      "Sesion": {
+        "type": "object",
+        "properties": {
+          "usuario": {
+            "$ref": "#/components/schemas/UsuarioSesion"
+          },
+          "csrf": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "usuario",
+          "csrf"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "paths": {
+    "/api/usuarios": {
+      "post": {
+        "summary": "Registrar asistente",
+        "description": "Público. Rechaza rol y cualquier propiedad extra; asigna usuario. 20 solicitudes/IP/hora. Contraseña se almacena como hash. Nombre y correo se recortan; correo se normaliza.",
+        "security": [],
+        "responses": {
+          "201": {
+            "description": "Operación completada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Perfil"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, propiedad, CSRF u origen no autorizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto con el estado actual.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo vacío o mayor de 16384 bytes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Se requiere application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Cuota excedida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "const": 900
+                },
+                "description": "Espera conservadora, en segundos."
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "description": "Obligatorio si ya existe una sesión autenticada. Obtener desde /api/auth/me.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Registro"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Iniciar sesión",
+        "description": "8 intentos/cuenta y 30/IP por 15 minutos. Correo inexistente y contraseña incorrecta usan el mismo 401. Devuelve cookie HttpOnly/SameSite=Strict, Secure en HTTPS, por 8 horas. Origen ajeno rechazado. Rota sesión previa si existe.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Operación completada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sesion"
+                }
+              }
+            },
+            "headers": {
+              "Set-Cookie": {
+                "description": "eventia_session=...; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800; Secure (solo HTTPS)",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión ausente o credenciales incorrectas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, propiedad, CSRF u origen no autorizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo vacío o mayor de 16384 bytes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Se requiere application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Cuota excedida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "const": 900
+                },
+                "description": "Espera conservadora, en segundos."
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "description": "Obligatorio si ya existe una sesión autenticada. Obtener desde /api/auth/me.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/eventos": {
+      "get": {
+        "summary": "Consultar catálogo",
+        "description": "Eventos activos futuros, ordenados por fecha, máximo 100. Parámetros q busca título o descripción; categoria filtra exactamente.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Operación completada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Evento"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "categoria",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 50
+            }
+          }
+        ]
+      },
+      "post": {
+        "summary": "Crear evento",
+        "description": "Solo organizador o administrador. Propietario se obtiene de sesión. Fecha futura con zona horaria, cupo entero positivo y precio cero.",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Operación completada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Evento"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión ausente o credenciales incorrectas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, propiedad, CSRF u origen no autorizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo vacío o mayor de 16384 bytes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Se requiere application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "description": "Token recibido en login o GET /api/auth/me.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventoEntrada"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/eventos/{id}": {
+      "get": {
+        "summary": "Consultar detalle público",
+        "description": "Devuelve un evento existente, incluidos estado y cupos.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Operación completada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Evento"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      },
+      "put": {
+        "summary": "Editar evento",
+        "description": "Organizador propietario o administrador. Reemplaza todos los campos editables. Bloquea fila y rechaza reducir cupo por debajo de las inscripciones actuales. No admite cambiar propietario.",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Evento"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión ausente o credenciales incorrectas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, propiedad, CSRF u origen no autorizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto con el estado actual.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo vacío o mayor de 16384 bytes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Se requiere application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "description": "Token recibido en login o GET /api/auth/me.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventoEntrada"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/eventos/{id}/inscripciones": {
+      "post": {
+        "summary": "Reservar un lugar",
+        "description": "Cualquier cuenta autenticada. Una plaza por persona/evento. Evento activo y futuro, no duplicado y cupo disponible. Operación transaccional con outbox; límite 20 solicitudes/usuario/minuto. El correo queda pendiente.",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Operación completada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InscripcionCreada"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión ausente o credenciales incorrectas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, propiedad, CSRF u origen no autorizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto con el estado actual.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo vacío o mayor de 16384 bytes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Se requiere application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Cuota excedida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "const": 900
+                },
+                "description": "Espera conservadora, en segundos."
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "description": "Token recibido en login o GET /api/auth/me.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InscripcionEntrada"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inscripciones/{id}": {
+      "get": {
+        "summary": "Consultar inscripción",
+        "description": "Solo propietario, organizador dueño del evento o administrador. No devuelve datos personales de otros asistentes.",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Inscripcion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión ausente o credenciales incorrectas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, propiedad, CSRF u origen no autorizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      }
+    },
+    "/api/usuarios/{id}": {
+      "get": {
+        "summary": "Consultar perfil mínimo",
+        "description": "Solo propio usuario o administrador. Devuelve exclusivamente id, nombre, correo.",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Perfil"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión ausente o credenciales incorrectas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, propiedad, CSRF u origen no autorizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "summary": "Consultar sesión y token CSRF",
+        "description": "Público. Sin sesión ambos valores son null. Con sesión retorna perfil propio con rol y token CSRF; nunca hash.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Operación completada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "usuario": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/UsuarioSesion"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "csrf": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "usuario",
+                    "csrf"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
