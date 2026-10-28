@@ -55,6 +55,8 @@ def make_handler(store):
                 method=self.command
                 if method=='GET' and not path.startswith('/api/'):
                     known={'/':'index.html','/app.js':'app.js','/styles.css':'styles.css'}
+                    if path=='/healthz':
+                        return self.respond(200,{'status':'ok'})
                     if path=='/openapi.json':
                         return self.respond(200,(ROOT/'docs/openapi.json').read_bytes(),content_type='application/octet-stream')
                     require(path in known,404,'Página no encontrada.')

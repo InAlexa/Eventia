@@ -1,3 +1,5 @@
+test_existing_account_preserved_and_sessions_revoked (test_roles.ExistingAccountRoleTests.test_existing_account_preserved_and_sessions_revoked) ... ok
+test_unknown_email_does_not_create_account (test_roles.ExistingAccountRoleTests.test_unknown_email_does_not_create_account) ... ok
 test_01_public_catalog_and_parameterized_search (test_security.SecurityTests.test_01_public_catalog_and_parameterized_search) ... ok
 test_02_register_rejects_role (test_security.SecurityTests.test_02_register_rejects_role) ... ok
 test_03_valid_registration_is_unprivileged_and_hashed (test_security.SecurityTests.test_03_valid_registration_is_unprivileged_and_hashed) ... ok
@@ -26,15 +28,14 @@ test_25_logout_invalidates_session (test_security.SecurityTests.test_25_logout_i
 test_26_security_headers_and_static (test_security.SecurityTests.test_26_security_headers_and_static) ... ok
 test_27_admin_only_role_change (test_security.SecurityTests.test_27_admin_only_role_change) ... ok
 test_28_hsts_and_secure_cookie_in_https_mode (test_security.SecurityTests.test_28_hsts_and_secure_cookie_in_https_mode) ... ok
-
-----------------------------------------------------------------------
-Ran 28 tests in 16.055s
-
-OK
+test_29_login_with_existing_session_requires_csrf (test_security.SecurityTests.test_29_login_with_existing_session_requires_csrf) ... ok
+test_30_admin_cannot_change_own_role_or_assign_invalid_role (test_security.SecurityTests.test_30_admin_cannot_change_own_role_or_assign_invalid_role) ... ok
+test_31_role_change_revokes_old_sessions_and_updates_permissions (test_security.SecurityTests.test_31_role_change_revokes_old_sessions_and_updates_permissions) ... ok
 test_32_registration_choice_grants_only_the_selected_non_admin_role (test_security.SecurityTests.test_32_registration_choice_grants_only_the_selected_non_admin_role) ... ok
+test_health_check_is_public_and_reports_ready (test_security.SecurityTests.test_health_check_is_public_and_reports_ready) ... ok
 test_registration_requires_account_type (test_security.SecurityTests.test_registration_requires_account_type) ... ok
 
 ----------------------------------------------------------------------
-Ran 35 tests in 6.763s
+Ran 36 tests in 6.529s
 
 OK

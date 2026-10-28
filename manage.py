@@ -1,5 +1,6 @@
 import argparse
 import getpass
+import os
 from datetime import datetime, timedelta, timezone
 from eventia.db import Store
 from eventia.service import Service
@@ -8,7 +9,7 @@ from eventia.security import hash_password
 def main():
     parser=argparse.ArgumentParser(description='Eventia')
     sub=parser.add_subparsers(dest='command',required=True)
-    run=sub.add_parser('run'); run.add_argument('--host',default='127.0.0.1'); run.add_argument('--port',type=int,default=8000)
+    run=sub.add_parser('run'); run.add_argument('--host',default='127.0.0.1'); run.add_argument('--port',type=int,default=int(os.getenv('PORT','8000')))
     sub.add_parser('seed')
     sub.add_parser('worker')
     account=sub.add_parser('create-user')

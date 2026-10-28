@@ -214,6 +214,10 @@ class SecurityTests(unittest.TestCase):
         status,body,headers=self.request('GET','/')
         self.assertEqual(status,200);self.assertIn(b'Eventia',body);self.assertIn("frame-ancestors 'none'",headers.get('Content-Security-Policy',''))
 
+    def test_health_check_is_public_and_reports_ready(self):
+        status,data,_=self.request('GET','/healthz')
+        self.assertEqual((status,data), (200,{'status':'ok'}))
+
     def test_27_admin_only_role_change(self):
         token,csrf,_=self.session('Ana')
         path=f"/api/admin/usuarios/{self.users['Luis']['id']}/rol"

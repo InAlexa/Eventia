@@ -61,9 +61,10 @@ Para las regresiones de la interfaz (sin dependencias, con Node.js instalado):
 node --test tests/test_organize.cjs
 ```
 
-La suite de seguridad ejecuta el `BaseHTTPRequestHandler` real con streams en memoria, sin abrir puertos; esto permite probar HTTP en entornos que bloquean sockets locales. Incluye pruebas de caja blanca para reglas/ramas de negocio, caja gris para sesiones, roles, CSRF y API, y caja negra para solicitudes y respuestas HTTP. La suite actual tiene 31 pruebas Python y cinco regresiones de interfaz con DOM simulado. La comprobación visual en navegador sigue pendiente.
+La suite de seguridad ejecuta el `BaseHTTPRequestHandler` real con streams en memoria, sin abrir puertos; esto permite probar HTTP en entornos que bloquean sockets locales. Incluye pruebas de caja blanca para reglas/ramas de negocio, caja gris para sesiones, roles, CSRF y API, y caja negra para solicitudes y respuestas HTTP. La suite tiene 36 pruebas Python y seis regresiones de interfaz con DOM simulado. La comprobación visual en navegador sigue pendiente.
 
 - `docs/ACTIVIDAD-23.md`: auditoría, rediseño, permisos, evidencia y respuestas.
+- `docs/ACTIVIDAD-27.md`: estado de despliegue, arquitectura Docker, comandos, respuestas y evidencias pendientes.
 - `docs/ARQUITECTURA.md`: módulos, persistencia, límites y evolución.
 - `docs/openapi.json`: contrato OpenAPI 3.1 de las siete operaciones auditadas y de la consulta de sesión. Se puede importar en Postman o un editor OpenAPI. También disponible en `/openapi.json` con el servidor abierto.
 - `docs/pruebas.txt`: salida real de la ejecución de pruebas en SQLite.
