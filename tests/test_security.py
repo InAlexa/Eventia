@@ -1,13 +1,12 @@
 import concurrent.futures
-import http.client
+import io
 import json
 import os
 import tempfile
-import threading
 import unittest
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
-from http.server import ThreadingHTTPServer
+from types import SimpleNamespace
 from eventia.db import Store
 from eventia.server import make_handler
 from eventia.service import Service
@@ -27,13 +26,14 @@ class SecurityTests(unittest.TestCase):
                 c.execute('INSERT INTO usuarios(nombre,correo,password_hash,rol) VALUES(?,?,?,?)',
                     (name,name.lower()+'@test.local',encoded,role))
             cls.users={r['nombre']:dict(r) for r in c.execute('SELECT * FROM usuarios').fetchall()}
-        cls.server=ThreadingHTTPServer(('127.0.0.1',0),make_handler(cls.store))
-        cls.thread=threading.Thread(target=cls.server.serve_forever,daemon=True);cls.thread.start()
-        cls.port=cls.server.server_port
+        # Run requests through the real HTTP handler without opening a socket.
+        # This keeps the suite usable in locked-down Windows/sandbox environments.
+        cls.handler=make_handler(cls.store)
+        cls.server=SimpleNamespace(server_port=8000)
 
     @classmethod
     def tearDownClass(cls):
-        cls.server.shutdown();cls.server.server_close();cls.tmp.cleanup()
+        cls.tmp.cleanup()
 
     def event(self,**kw):
         d=dict(titulo='Encuentro de prueba',descripcion='Descripción de prueba',ubicacion='Xela',categoria='Comunidad',
@@ -47,15 +47,38 @@ class SecurityTests(unittest.TestCase):
         self.assertEqual(caught.exception.status,status)
 
     def request(self,method,path,data=None,token=None,csrf=None,origin=None):
-        headers={}
+        headers={'Host':'127.0.0.1:8000'}
         if data is not None: headers['Content-Type']='application/json'
+        if data is not None: headers['Content-Length']=str(len(json.dumps(data).encode()))
         if token: headers['Cookie']='eventia_session='+token
         if csrf: headers['X-CSRF-Token']=csrf
         if origin: headers['Origin']=origin
-        connection=http.client.HTTPConnection('127.0.0.1',self.port,timeout=30)
-        connection.request(method,path,json.dumps(data) if data is not None else None,headers)
-        response=connection.getresponse();body=response.read();result=(response.status,json.loads(body),dict(response.getheaders()))
-        connection.close();return result
+        body=json.dumps(data).encode() if data is not None else b''
+        request=io.BytesIO((f'{method} {path} HTTP/1.1\r\n'+'\r\n'.join(f'{k}: {v}' for k,v in headers.items())+'\r\n\r\n').encode()+body)
+        output=io.BytesIO()
+        handler=self.handler.__new__(self.handler)
+        handler.server=self.server;handler.client_address=('127.0.0.1',12345)
+        handler.request_version='HTTP/1.1';handler.command=method;handler.path=path
+        handler.rfile=request;handler.wfile=output
+        # BaseHTTPRequestHandler parses its request line/headers in __init__, so
+        # provide the in-memory streams before invoking it via a tiny socket shim.
+        class MemorySocket:
+            def makefile(self,mode,*args,**kwargs): return request if 'r' in mode else output
+            def sendall(self,data): output.write(data)
+            def close(self): pass
+        try: self.handler(MemorySocket(),('127.0.0.1',12345),self.server)
+        except Exception as exc:
+            raise AssertionError(f'In-memory HTTP handler failed: {exc}') from exc
+        response=output.getvalue().split(b'\r\n\r\n',1)
+        status_line=response[0].split(b'\r\n',1)[0].decode()
+        status=int(status_line.split()[1]);header_lines=response[0].decode().split('\r\n')[1:]
+        response_headers={}
+        for line in header_lines:
+            if ':' in line:
+                key,value=line.split(':',1);response_headers[key.strip()]=value.strip()
+        payload=response[1] if len(response)>1 else b''
+        parsed=json.loads(payload) if 'application/json' in response_headers.get('Content-Type','') else payload
+        return status,parsed,response_headers
 
     def session(self,name='Ana'):
         return self.service.login(dict(correo=name.lower()+'@test.local',password=self.password),'test-'+name)
@@ -67,14 +90,26 @@ class SecurityTests(unittest.TestCase):
         self.assertEqual(status,200);self.assertEqual(rows,[])
 
     def test_02_register_rejects_role(self):
-        d=dict(nombre='Intruso',correo='intruso@test.local',password=self.password,rol='administrador')
+        d=dict(nombre='Intruso',correo='intruso@test.local',password=self.password,tipo_cuenta='administrador')
         self.assertEqual(self.request('POST','/api/usuarios',d)[0],400)
 
     def test_03_valid_registration_is_unprivileged_and_hashed(self):
-        status,data,_=self.request('POST','/api/usuarios',dict(nombre='Nueva',correo='nueva@test.local',password=self.password))
+        status,data,_=self.request('POST','/api/usuarios',dict(nombre='Nueva',correo='nueva@test.local',password=self.password,tipo_cuenta='asistente'))
         self.assertEqual(status,201);self.assertEqual(set(data),{'id','nombre','correo'})
         with self.store.connect() as c: row=c.execute('SELECT * FROM usuarios WHERE id=?',(data['id'],)).fetchone()
         self.assertEqual(row['rol'],'usuario');self.assertNotEqual(row['password_hash'],self.password)
+
+    def test_32_registration_choice_grants_only_the_selected_non_admin_role(self):
+        for kind,expected,email in [('organizador','organizador','creadora@test.local'),('asistente','usuario','asistente2@test.local')]:
+            status,data,_=self.request('POST','/api/usuarios',dict(nombre='Nueva Cuenta',correo=email,password=self.password,tipo_cuenta=kind))
+            self.assertEqual(status,201)
+            with self.store.connect() as c: row=c.execute('SELECT rol FROM usuarios WHERE id=?',(data['id'],)).fetchone()
+            self.assertEqual(row['rol'],expected)
+            self.assertNotEqual(row['rol'],'administrador')
+
+    def test_registration_requires_account_type(self):
+        d=dict(nombre='Sin Tipo',correo='sintipo@test.local',password=self.password)
+        self.assertEqual(self.request('POST','/api/usuarios',d)[0],400)
 
     def test_04_invalid_password(self):
         self.assertEqual(self.request('POST','/api/usuarios',dict(nombre='Ana',correo='x@test.local',password='123456'))[0],400)
@@ -176,8 +211,8 @@ class SecurityTests(unittest.TestCase):
         self.assertEqual(self.request('GET','/api/inscripciones',token=token)[0],401)
 
     def test_26_security_headers_and_static(self):
-        c=http.client.HTTPConnection('127.0.0.1',self.port);c.request('GET','/');r=c.getresponse();body=r.read()
-        self.assertEqual(r.status,200);self.assertIn(b'Eventia',body);self.assertIn("frame-ancestors 'none'",r.getheader('Content-Security-Policy'));c.close()
+        status,body,headers=self.request('GET','/')
+        self.assertEqual(status,200);self.assertIn(b'Eventia',body);self.assertIn("frame-ancestors 'none'",headers.get('Content-Security-Policy',''))
 
     def test_27_admin_only_role_change(self):
         token,csrf,_=self.session('Ana')
@@ -186,6 +221,31 @@ class SecurityTests(unittest.TestCase):
         admin,csrf,_=self.session('Admin');victim,_,_=self.session('Luis')
         self.assertEqual(self.request('PATCH',path,{'rol':'organizador'},token=admin,csrf=csrf)[0],200)
         self.assertIsNone(self.service.authenticate(victim))
+
+    def test_29_login_with_existing_session_requires_csrf(self):
+        token,csrf,_=self.session('Ana')
+        credentials=dict(correo='luis@test.local',password=self.password)
+        self.assertEqual(self.request('POST','/api/auth/login',credentials,token=token)[0],403)
+        status,_,headers=self.request('POST','/api/auth/login',credentials,token=token,csrf=csrf)
+        self.assertEqual(status,200)
+        self.assertIsNone(self.service.authenticate(token))
+        self.assertIn('eventia_session=',headers['Set-Cookie'])
+
+    def test_30_admin_cannot_change_own_role_or_assign_invalid_role(self):
+        admin,csrf,_=self.session('Admin')
+        path=f"/api/admin/usuarios/{self.users['Admin']['id']}/rol"
+        self.assertEqual(self.request('PATCH',path,{'rol':'usuario'},token=admin,csrf=csrf)[0],409)
+        path=f"/api/admin/usuarios/{self.users['Ana']['id']}/rol"
+        self.assertEqual(self.request('PATCH',path,{'rol':'superadmin'},token=admin,csrf=csrf)[0],400)
+
+    def test_31_role_change_revokes_old_sessions_and_updates_permissions(self):
+        admin,csrf,_=self.session('Admin')
+        user_token,_,_=self.session('Luis')
+        path=f"/api/admin/usuarios/{self.users['Luis']['id']}/rol"
+        self.assertEqual(self.request('PATCH',path,{'rol':'organizador'},token=admin,csrf=csrf)[0],200)
+        self.assertEqual(self.request('POST','/api/eventos',self.event(),token=user_token,csrf='stale')[0],401)
+        fresh,_,_=self.session('Luis')
+        self.assertEqual(self.request('POST','/api/eventos',self.event(),token=fresh,csrf='invalid')[0],403)
 
     def test_28_hsts_and_secure_cookie_in_https_mode(self):
         before=os.environ.get('COOKIE_SECURE');os.environ['COOKIE_SECURE']='1'

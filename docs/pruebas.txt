@@ -31,3 +31,10 @@ test_28_hsts_and_secure_cookie_in_https_mode (test_security.SecurityTests.test_2
 Ran 28 tests in 16.055s
 
 OK
+test_32_registration_choice_grants_only_the_selected_non_admin_role (test_security.SecurityTests.test_32_registration_choice_grants_only_the_selected_non_admin_role) ... ok
+test_registration_requires_account_type (test_security.SecurityTests.test_registration_requires_account_type) ... ok
+
+----------------------------------------------------------------------
+Ran 35 tests in 6.763s
+
+OK

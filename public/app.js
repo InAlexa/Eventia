@@ -10,7 +10,9 @@ let toastTimer;
 function toast(message){$('#toast').textContent=message;$('#toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').hidden=true,5000)}
 async function api(path,method='GET',data){
   const headers={};if(data!==undefined)headers['Content-Type']='application/json';if(state.csrf)headers['X-CSRF-Token']=state.csrf;
-  const response=await fetch(path,{method,headers,credentials:'same-origin',body:data!==undefined?JSON.stringify(data):undefined});
+  let response;
+  try{response=await fetch(path,{method,headers,credentials:'same-origin',body:data!==undefined?JSON.stringify(data):undefined})}
+  catch(error){throw new Error('No se pudo conectar con Eventia. Comprueba que la ventana del servidor siga abierta y vuelve a intentarlo.')}
   const result=await response.json();if(!response.ok)throw new Error(result.error||'No se pudo completar la solicitud.');return result;
 }
 function modal(html){$('#modal-content').innerHTML=html;if(!$('#modal').open)$('#modal').showModal()}
@@ -26,11 +28,12 @@ function account(){
   else $('#login-open').onclick=()=>auth();
 }
 function auth(register=false,onSuccess=null){
-  modal(`<p class="eyebrow">TU PRÓXIMA HISTORIA EMPIEZA AQUÍ</p><h2>${register?'Hagamos conexión.':'Qué bueno verte de nuevo.'}</h2><p class="form-note">${register?'Crea tu cuenta y encuentra tu próximo encuentro.':'Entra para reservar tu lugar y consultar tus inscripciones.'}</p><form id="auth-form" class="form">${register?'<label>Tu nombre<input name="nombre" autocomplete="name" minlength="2" maxlength="80" required></label>':''}<label>Correo electrónico<input name="correo" type="email" autocomplete="email" maxlength="254" required></label><label>Contraseña<input name="password" type="password" autocomplete="${register?'new-password':'current-password'}" ${register?'minlength="12"':''} maxlength="128" required></label>${register?'<span class="form-note">Usa una contraseña de al menos 12 caracteres. Tu cuenta se creará como asistente.</span>':''}<p class="form-error" id="auth-error" role="alert" hidden></p><button class="button dark" type="submit">${register?'Crear mi cuenta':'Iniciar sesión'} <span>↗</span></button></form><p class="form-note">${register?'¿Ya tienes cuenta?':'¿Es tu primera vez?'} <button class="text-button" id="auth-switch">${register?'Inicia sesión':'Crea tu cuenta'}</button></p>`);
+  modal(`<p class="eyebrow">TU PRÓXIMA HISTORIA EMPIEZA AQUÍ</p><h2>${register?'Hagamos conexión.':'Qué bueno verte de nuevo.'}</h2><p class="form-note">${register?'Crea tu cuenta y encuentra tu próximo encuentro.':'Entra para reservar tu lugar y consultar tus inscripciones.'}</p><form id="auth-form" class="form">${register?'<label>Tu nombre<input name="nombre" autocomplete="name" minlength="2" maxlength="80" required></label>':''}<label>Correo electrónico<input name="correo" type="email" autocomplete="email" maxlength="254" required></label><label>Contraseña<input name="password" type="password" autocomplete="${register?'new-password':'current-password'}" ${register?'minlength="12"':''} maxlength="128" required></label>${register?'<fieldset class="account-type"><legend>¿Cómo quieres usar Eventia?</legend><label><input type="radio" name="tipo_cuenta" value="organizador" required> Quiero crear eventos y también asistir</label><label><input type="radio" name="tipo_cuenta" value="asistente" required> Solo quiero asistir a eventos</label></fieldset><span class="form-note">Usa una contraseña de al menos 12 caracteres.</span>':''}<p class="form-error" id="auth-error" role="alert" hidden></p><button class="button dark" type="submit">${register?'Crear mi cuenta':'Iniciar sesión'} <span>↗</span></button></form><p class="form-note">${register?'¿Ya tienes cuenta?':'¿Es tu primera vez?'} <button class="text-button" id="auth-switch">${register?'Inicia sesión':'Crea tu cuenta'}</button></p>`);
   $('#auth-switch').onclick=()=>auth(!register,onSuccess);
   $('#auth-form').onsubmit=async e=>{
     e.preventDefault();const form=e.currentTarget,button=form.querySelector('[type=submit]');button.disabled=true;
-    const data=Object.fromEntries(new FormData(form));
+    const formData=new FormData(form);
+    const data=register?{nombre:formData.get('nombre'),correo:formData.get('correo'),password:formData.get('password'),tipo_cuenta:formData.get('tipo_cuenta')}:{correo:formData.get('correo'),password:formData.get('password')};
     try{
       if(register)await api('/api/usuarios','POST',data);
       const result=await api('/api/auth/login','POST',{correo:data.correo,password:data.password});
@@ -84,7 +87,7 @@ async function organize(){
   }catch(e){toast('No pudimos comprobar tu sesión. '+e.message);return}
   if(!state.user){auth(false,organize);return}
   if(['organizador','administrador'].includes(state.user.rol)){location.hash='organizar';await route();return}
-  modal('<p class="eyebrow">PERMISO PARA PUBLICAR</p><h2>Tu cuenta ya está creada.</h2><p class="detail-description">Has iniciado sesión como <strong>'+esc(state.user.nombre)+'</strong>. Tu cuenta tiene el rol de asistente; para crear eventos necesita el permiso de organizador.</p><p class="form-note">No necesitas registrarte otra vez. Pide al administrador que habilite el rol de organizador para tu cuenta actual. Después, inicia sesión de nuevo.</p><button class="button dark" id="organizer-account">Entendido</button>');
+  modal('<p class="eyebrow">CREA TU PRÓXIMO ENCUENTRO</p><h2>Tu cuenta ya está creada.</h2><p class="detail-description">Con el tipo de cuenta que tienes, puedes unirte a eventos, pero no crear uno.</p><p class="form-note">Para publicar eventos, cambia el tipo de cuenta desde la sección Usuarios o solicita a un administrador que lo actualice.</p><button class="button dark" id="organizer-account">Entendido</button>');
   $('#organizer-account').onclick=()=>$('#modal').close();
 }
 $('#organize-cta').onclick=organize;

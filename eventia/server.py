@@ -70,6 +70,8 @@ def make_handler(store):
                     origin=self.headers.get('Origin')
                     require(origin is None or origin==expected,403,'Origen no permitido.')
                     require(self.headers.get('Sec-Fetch-Site')!='cross-site',403,'Solicitud entre sitios rechazada.')
+                    # Login is the only state-changing endpoint that may be called
+                    # with an existing session, so protect it against login-CSRF too.
                     if user:
                         require(hmac.compare_digest(self.headers.get('X-CSRF-Token',''),user['csrf']),403,'Token CSRF inválido.')
                 ip=self.client_address[0]  # Never trust client-controlled X-Forwarded-For.

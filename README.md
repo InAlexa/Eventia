@@ -8,10 +8,10 @@ Requisito: Python 3.11 o posterior. Abre una terminal en esta carpeta:
 
 ```powershell
 python manage.py seed
-python manage.py run
+python start_eventia.py
 ```
 
-Abre http://127.0.0.1:8000. Si Windows usa el lanzador `py`, reemplaza `python` por `py`. También puedes ejecutar `Iniciar Eventia.cmd`. Los datos locales se guardan en `data/eventia.db` y permanecen después de cerrar el servidor. Para detenerlo: Ctrl+C.
+El iniciador espera a que el servidor responda antes de abrir http://127.0.0.1:8000. Si Windows usa el lanzador `py`, ejecuta `py manage.py seed` y `py start_eventia.py`. También puedes ejecutar `Iniciar Eventia.cmd`. Los datos locales se guardan en `data/eventia.db` y permanecen después de cerrar el servidor. Para detenerlo: Ctrl+C.
 
 El catálogo inicial tiene seis eventos ficticios. Sus fechas se calculan al ejecutar `seed` por primera vez. No existen contraseñas públicas ni accesos privilegiados automáticos. Regístrate desde la interfaz para probar el flujo de asistente. Todos los eventos son gratuitos, como define el MVP; no hay cobros.
 
@@ -36,7 +36,7 @@ python manage.py set-role --correo "TU_CORREO_REGISTRADO" --rol organizador
 
 Reemplaza TU_CORREO_REGISTRADO por el correo con el que ya te registraste. Se conserva la cuenta, contraseña e inscripciones; se cierran sus sesiones. Inicia sesión de nuevo y entra en **Organizar → Crear evento**. En Docker usa `docker compose exec web python manage.py set-role --correo "TU_CORREO_REGISTRADO" --rol organizador`. La alternativa desde la interfaz es que un administrador cambie tu rol en **Usuarios**.
 
-El botón **Quiero organizar** comprueba la sesión actual, permite iniciar sesión con una cuenta existente y retoma la acción al terminar. Si la cuenta es asistente, explica el permiso faltante sin pedir un nuevo registro.
+En el registro, cada persona elige si quiere **crear eventos y también asistir** o si **solo quiere asistir**. La elección de crear eventos habilita el tipo de cuenta organizador, que puede publicar y también inscribirse. No concede permisos de administración. El botón **Quiero organizar** comprueba la sesión actual, permite iniciar sesión con una cuenta existente y retoma la acción al terminar; si su tipo de cuenta solo permite asistir, muestra cómo pedir el cambio sin revelar nombres técnicos de roles.
 
 ## Qué incluye
 
@@ -61,7 +61,7 @@ Para las regresiones de la interfaz (sin dependencias, con Node.js instalado):
 node --test tests/test_organize.cjs
 ```
 
-Corrección del flujo de organización: se verificaron cinco casos de sesión/rol usando el código real de la interfaz con un DOM simulado y dos pruebas de la CLI para habilitar cuentas existentes. Las siete pruebas pasaron. Estas pruebas no sustituyen la revisión visual pendiente en navegador.
+La suite de seguridad ejecuta el `BaseHTTPRequestHandler` real con streams en memoria, sin abrir puertos; esto permite probar HTTP en entornos que bloquean sockets locales. Incluye pruebas de caja blanca para reglas/ramas de negocio, caja gris para sesiones, roles, CSRF y API, y caja negra para solicitudes y respuestas HTTP. La suite actual tiene 31 pruebas Python y cinco regresiones de interfaz con DOM simulado. La comprobación visual en navegador sigue pendiente.
 
 - `docs/ACTIVIDAD-23.md`: auditoría, rediseño, permisos, evidencia y respuestas.
 - `docs/ARQUITECTURA.md`: módulos, persistencia, límites y evolución.

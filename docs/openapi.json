@@ -115,12 +115,18 @@
             "minLength": 12,
             "maxLength": 128,
             "writeOnly": true
+          },
+          "tipo_cuenta": {
+            "type": "string",
+            "enum": ["organizador", "asistente"],
+            "description": "La opción organizador permite crear eventos y asistir; asistente solamente puede inscribirse. Ninguna opción concede permisos administrativos."
           }
         },
         "required": [
           "nombre",
           "correo",
-          "password"
+          "password",
+          "tipo_cuenta"
         ],
         "additionalProperties": false
       },
@@ -379,7 +385,7 @@
   "paths": {
     "/api/usuarios": {
       "post": {
-        "summary": "Registrar asistente",
+        "summary": "Crear cuenta de organizador o asistente",
         "description": "Público. Rechaza rol y cualquier propiedad extra; asigna usuario. 20 solicitudes/IP/hora. Contraseña se almacena como hash. Nombre y correo se recortan; correo se normaliza.",
         "security": [],
         "responses": {

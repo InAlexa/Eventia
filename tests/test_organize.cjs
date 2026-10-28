@@ -21,9 +21,15 @@ test('visitor is offered login to an existing account',async()=>{
  assert.match(html,/Iniciar sesión/);assert.doesNotMatch(html,/name="nombre"/);
  assert.ok(a.element('#auth-switch').onclick);
 });
+test('registration offers creating events or only attending, never an admin choice',async()=>{
+ const a=app(null);vm.runInContext('auth(true)',a.context);const html=a.element('#modal-content').innerHTML;
+ assert.match(html,/crear eventos y también asistir/i);assert.match(html,/solo quiero asistir/i);
+ assert.doesNotMatch(html,/administrador/);
+});
 test('signed-in assistant is not asked to register again',async()=>{
  const a=app({id:1,nombre:'Ana',rol:'usuario'});await a.run();const html=a.element('#modal-content').innerHTML;
- assert.match(html,/Tu cuenta ya está creada/);assert.match(html,/permiso de organizador/);
+ assert.match(html,/Tu cuenta ya está creada/);assert.match(html,/tipo de cuenta que tienes/);
+ assert.doesNotMatch(html,/rol de asistente|rol de organizador/);
  assert.doesNotMatch(html,/Crear mi cuenta/);assert.equal(a.context.location.hash,'');
 });
 test('organizer proceeds to event management after a fresh session check',async()=>{
@@ -34,7 +40,7 @@ test('organizer proceeds to event management after a fresh session check',async(
 test('stale organizer state cannot bypass the current server role',async()=>{
  const a=app({id:1,nombre:'Ana',rol:'usuario'});
  vm.runInContext("state.user={id:1,nombre:'Ana',rol:'organizador'}",a.context);
- await a.run();assert.match(a.element('#modal-content').innerHTML,/rol de asistente/);
+ await a.run();assert.match(a.element('#modal-content').innerHTML,/tipo de cuenta que tienes/);
  assert.equal(a.context.location.hash,'');
 });
 test('a failed session check does not redirect to registration',async()=>{

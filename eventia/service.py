@@ -16,16 +16,19 @@ class Service:
 
     def register(self, data, ip):
         rate_limit(self.store, 'registro:'+ip, 20, 3600)
-        fields(data, ('nombre','correo','password'), ('nombre','correo','password'))
+        fields(data, ('nombre','correo','password','tipo_cuenta'), ('nombre','correo','password','tipo_cuenta'))
         name=text(data['nombre'],'Nombre',2,80)
         email=text(data['correo'],'Correo',3,254).lower()
         require(bool(re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+',email)),400,'Correo inválido.')
         password=data['password']
         require(isinstance(password,str) and 12<=len(password)<=128,400,'La contraseña debe tener entre 12 y 128 caracteres.')
+        account_type=data['tipo_cuenta']
+        require(isinstance(account_type,str) and account_type in ('organizador','asistente'),400,'Elige si quieres crear eventos o solamente asistir.')
+        role='organizador' if account_type=='organizador' else 'usuario'
         encoded=hash_password(password)
         with self.store.connect(write=True) as c:
-            row=c.execute('''INSERT INTO usuarios(nombre,correo,password_hash) VALUES(?,?,?)
-                ON CONFLICT(correo) DO NOTHING RETURNING id,nombre,correo''',(name,email,encoded)).fetchone()
+            row=c.execute('''INSERT INTO usuarios(nombre,correo,password_hash,rol) VALUES(?,?,?,?)
+                ON CONFLICT(correo) DO NOTHING RETURNING id,nombre,correo''',(name,email,encoded,role)).fetchone()
             require(row is not None,409,'No se pudo crear la cuenta con estos datos.')
             return dict(row)
 
